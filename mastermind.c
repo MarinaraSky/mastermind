@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define MULTI 0x01
+#define MULTI 	0x01
+#define BOT 	0x02
 
 /*  get_rand will generate a random number between 0123-9876 */
 void get_rand(char *mm_string, char switches);
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
 	int guess_count = 0;
 	int red = 0;
 	int white = 0;
-	char switches;
+	char switches = 0;
 
 	if(argc > 1)
 	{
@@ -36,23 +37,46 @@ int main(int argc, char *argv[])
 				switch(argv[i][1])
 				{
 					case(104):	// case to check if -h is set
-						printf("USAGE ./mastermind [-h]\n");
+						printf("USAGE ./mastermind [-h] [-a] [-m]\n");
+						printf("-h = Use this to see what you're seeing.\n");
+						printf("-a = Auto play.\n");
+						printf("-m = Multiple Digit Mode.\n");
 						goto end;
 
 					case(109):
 						switches |= MULTI;
+						break;
+					
+					case(97):
+						switches |= BOT;
+						break;
+						
+					default:
+						printf("Invalid switch. Exiting\n");
+						goto end;
 				}
 			}
 		}
 	}
 	get_rand(mm_num, switches);
 	printf("%s\n", mm_num); // uncomment to see answer
+	int i = 0;
 	while(red != 4) // win condition
 	{
-		printf("Plese enter a 4 digit number: ");
-		fgets(guess, sizeof(guess), stdin);
+		if((switches & BOT) == BOT )
+		{
+			i++;
+			sprintf(guess, "%04d\n", i);
+			printf("Please enter a 4 digit number Mr. Robot: %s", guess);
+		}
+		else
+		{
+			printf("Plese enter a 4 digit number: ");
+			fgets(guess, sizeof(guess), stdin);
+		}
 		if(strlen(guess) == 5)
 		{
+			guess[4] = 0;
 			if(validate_num(guess, switches) == 1)
 			{
 				red = check_reds(guess, mm_num);
