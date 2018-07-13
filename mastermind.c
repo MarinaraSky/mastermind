@@ -46,6 +46,9 @@ int main(int argc, char *argv[])
 						printf("-h = Use this to see what you're seeing.\n");
 						printf("-a = Auto play.\n");
 						printf("-m = Multiple Digit Mode.\n");
+						printf("Optional file .mm can be in the same directory.\n"
+								"If .mm is used the -m flag requirements still"
+								" apply.\n");
 						goto end;
 
 					case(109):	// case for -m
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
 				total_time += (end_time - start_time);
 				red = check_reds(guess, mm_num);
 				white = check_whites(guess, mm_num);
-				printf("reds %d\nwhite %d\n", red, white);
+				printf("Reds: %d\nWhite: %d\n", red, white);
 				guess_count++;
 			}
 			else
@@ -131,7 +134,8 @@ int check_whites(char *guess, char *mm_string)
 	{
 		for(int j = 0; j <= 4; j++)
 		{
-			if(temp_guess[i] == temp_mm_string[j] && i != j && temp_mm_string[j] != 0) 
+			if(temp_guess[i] == temp_mm_string[j] && 
+					i != j && temp_mm_string[j] != 0) 
 			{
 				if(last_count == count)
 				{
@@ -160,26 +164,58 @@ int check_reds(char *guess, char *mm_string)
 
 void get_rand(char *mm_string, char switches)
 {
-	char buff[1];
+	char buff[16];
 	unsigned int rand_int;
+	int found_mm = 0;	// used to check if .mm was opened 
+	int randy;	// used as my file stream handle
+	int loop = 0;	// used to only check .mm once
 
 	do
 	{
-		int randy = open("/dev/urandom", O_RDONLY);
-		if(randy == -1) // file fails to open
+		if(found_mm == 0 && loop == 0)
 		{
-			perror("Error getting random seed ");
-			exit(1);
+			randy = open(".mm", O_RDONLY);
+			printf("I may have a good code stashed around here\n");
+			sleep(2);
+			if(randy == -1)
+			{
+				printf("Strange. Thought I left it right here.\n");
+				sleep(1);
+				found_mm = 1; // failed to find .mm
+			}
 		}
-		for(int i = 0; i < 4; i++)
+		else
 		{
-			read(randy, buff, sizeof(buff));
+			randy = open("/dev/urandom", O_RDONLY);
+			if(randy == -1) // file fails to open
+			{
+				perror("Error getting random seed ");
+				exit(1);
+			}
+		}
+		read(randy, buff, sizeof(buff)); // grab random data or .mm data
+		if(found_mm == 0 && loop == 0)
+		{
+			buff[4] = '\0';
+			sprintf(mm_string, "%4s", buff);
+			loop++;
+		}
+		else if(loop == 1)
+		{
+			printf("My secret code had been foiled.\n");
+			sleep(1);
+			loop++;
+		}
+		else
+		{
+			printf("Thinking of a really hard code for you.\n");
+			sleep(1);
 			rand_int = (unsigned int) *buff; // typecasted for srand()
+			srand(rand_int);
+			rand_int = rand() % 10000; // random number between 0 and 9999
+			sprintf(mm_string, "%04d", rand_int); // pads with zeros if needed
 		}
 		close(randy);
-		srand(rand_int);
-		rand_int = rand() % 10000; // random number between 0 and 9999
-		sprintf(mm_string, "%04d", rand_int); // pads with zeros if needed
 
 	}while(validate_num(mm_string, switches) == 0);
 }
@@ -187,9 +223,9 @@ void get_rand(char *mm_string, char switches)
 int validate_num(char *mm_string, char switches)
 {
 	int return_code = 1;
-	if(!(switches & MULTI))
+	if(!(switches & MULTI)) // Bitwise anding to check if multi flag is on
 	{
-		for(int i = 0; i < 3; i++)
+		for(int i = 0; i < 4; i++)
 		{
 			for(int j = i + 1; j <= 4; j++)
 			{
