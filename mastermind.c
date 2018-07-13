@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 
 #define MULTI 	0x01
 #define BOT 	0x02
@@ -23,10 +24,14 @@ int main(int argc, char *argv[])
 {
 	char mm_num[5];
 	char guess[255];
+	char switches = 0;
 	int guess_count = 0;
 	int red = 0;
 	int white = 0;
-	char switches = 0;
+	int i = 0;
+	time_t start_time = 0;
+	time_t end_time = 0;
+	int total_time = 0;
 
 	if(argc > 1)
 	{
@@ -43,16 +48,16 @@ int main(int argc, char *argv[])
 						printf("-m = Multiple Digit Mode.\n");
 						goto end;
 
-					case(109):
+					case(109):	// case for -m
 						switches |= MULTI;
 						break;
 					
-					case(97):
+					case(97):	//case for -a
 						switches |= BOT;
 						break;
 						
 					default:
-						printf("Invalid switch. Exiting\n");
+						printf("Invalid switch. Try ./mastermind -h. Exiting\n");
 						goto end;
 				}
 			}
@@ -60,18 +65,19 @@ int main(int argc, char *argv[])
 	}
 	get_rand(mm_num, switches);
 	printf("%s\n", mm_num); // uncomment to see answer
-	int i = 0;
 	while(red != 4) // win condition
 	{
 		if((switches & BOT) == BOT )
 		{
 			i++;
+			start_time = time(NULL);
 			sprintf(guess, "%04d\n", i);
 			printf("Please enter a 4 digit number Mr. Robot: %s", guess);
 		}
 		else
 		{
 			printf("Plese enter a 4 digit number: ");
+			start_time = time(NULL); 
 			fgets(guess, sizeof(guess), stdin);
 		}
 		if(strlen(guess) == 5)
@@ -79,6 +85,8 @@ int main(int argc, char *argv[])
 			guess[4] = 0;
 			if(validate_num(guess, switches) == 1)
 			{
+				end_time = time(NULL);
+				total_time += (end_time - start_time);
 				red = check_reds(guess, mm_num);
 				white = check_whites(guess, mm_num);
 				printf("reds %d\nwhite %d\n", red, white);
@@ -95,6 +103,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	printf("You win with %d guesses.\n", guess_count);
+	printf("Average time per guess: %.2f seconds\n", 
+			(total_time / (float) guess_count));
 	end:
 		return 0;
 }
@@ -191,6 +201,5 @@ int validate_num(char *mm_string, char switches)
 			}
 		}	
 	}
-
 	return return_code;
 }
