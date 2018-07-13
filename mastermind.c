@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-/* get_rand will generate a random number between 0123-9876 */
+/*  get_rand will generate a random number between 0123-9876 */
 void get_rand(char *mm_string);
 /* validate_num is used to make sure player guess and mastermind
  * code numbers have uniqe digits as well as no symbols */
