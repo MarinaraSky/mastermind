@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 				total_time += (end_time - start_time);
 				red = check_reds(guess, mm_num);
 				white = check_whites(guess, mm_num);
-				printf("reds %d\nwhite %d\n", red, white);
+				printf("Reds: %d\nWhite: %d\n", red, white);
 				guess_count++;
 			}
 			else
@@ -134,7 +134,8 @@ int check_whites(char *guess, char *mm_string)
 	{
 		for(int j = 0; j <= 4; j++)
 		{
-			if(temp_guess[i] == temp_mm_string[j] && i != j && temp_mm_string[j] != 0) 
+			if(temp_guess[i] == temp_mm_string[j] && 
+					i != j && temp_mm_string[j] != 0) 
 			{
 				if(last_count == count)
 				{
@@ -165,8 +166,8 @@ void get_rand(char *mm_string, char switches)
 {
 	char buff[16];
 	unsigned int rand_int;
-	int found_mm = 0;
-	int randy;
+	int found_mm = 0;	// used to check if .mm was opened 
+	int randy;	// used as my file stream handle
 	int loop = 0;	// used to only check .mm once
 
 	do
@@ -192,7 +193,7 @@ void get_rand(char *mm_string, char switches)
 				exit(1);
 			}
 		}
-		read(randy, buff, sizeof(buff));
+		read(randy, buff, sizeof(buff)); // grab random data or .mm data
 		if(found_mm == 0 && loop == 0)
 		{
 			buff[4] = '\0';
@@ -222,7 +223,7 @@ void get_rand(char *mm_string, char switches)
 int validate_num(char *mm_string, char switches)
 {
 	int return_code = 1;
-	if(!(switches & MULTI))
+	if(!(switches & MULTI)) // Bitwise anding to check if multi flag is on
 	{
 		for(int i = 0; i < 4; i++)
 		{
