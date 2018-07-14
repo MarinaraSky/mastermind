@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	{
 		for(int i = 1; i < argc; i++)
 		{
-			if(argv[i][0] == 45) // checks if there is a hyphen
+			if(45 == argv[i][0]) // checks if there is a hyphen
 			{
 				switch(argv[i][1])
 				{
@@ -67,10 +67,10 @@ int main(int argc, char *argv[])
 		}
 	}
 	get_rand(mm_num, switches);
-	printf("%s\n", mm_num); // uncomment to see answer
-	while(red != 4) // win condition
+//	printf("%s\n", mm_num); // uncomment to see answer for easy mode
+	while(4 != red) // win condition
 	{
-		if((switches & BOT) == BOT )
+		if(BOT == (switches & BOT))
 		{
 			i++;
 			start_time = time(NULL);
@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
 			start_time = time(NULL); 
 			fgets(guess, sizeof(guess), stdin);
 		}
-		if(strlen(guess) == 5)
+		if(5 == strlen(guess))
 		{
 			guess[4] = 0;
-			if(validate_num(guess, switches) == 1)
+			if(1 == validate_num(guess, switches))
 			{
 				end_time = time(NULL);
 				total_time += (end_time - start_time);
@@ -135,7 +135,7 @@ int check_whites(char *guess, char *mm_string)
 		for(int j = 0; j <= 4; j++)
 		{
 			if(temp_guess[i] == temp_mm_string[j] && 
-					i != j && temp_mm_string[j] != 0) 
+					i != j && 0 != temp_mm_string[j]) 
 			{
 				if(last_count == count)
 				{
@@ -177,7 +177,7 @@ void get_rand(char *mm_string, char switches)
 			randy = open(".mm", O_RDONLY);
 			printf("I may have a good code stashed around here\n");
 			sleep(2);
-			if(randy == -1)
+			if(-1 == randy)
 			{
 				printf("Strange. Thought I left it right here.\n");
 				sleep(1);
@@ -187,20 +187,20 @@ void get_rand(char *mm_string, char switches)
 		else
 		{
 			randy = open("/dev/urandom", O_RDONLY);
-			if(randy == -1) // file fails to open
+			if(-1 == randy) // file fails to open
 			{
 				perror("Error getting random seed ");
 				exit(1);
 			}
 		}
 		read(randy, buff, sizeof(buff)); // grab random data or .mm data
-		if(found_mm == 0 && loop == 0)
+		if(0 == found_mm && 0 == loop)
 		{
 			buff[4] = '\0';
 			sprintf(mm_string, "%4s", buff);
 			loop++;
 		}
-		else if(loop == 1)
+		else if(1 == loop)
 		{
 			printf("My secret code had been foiled.\n");
 			sleep(1);
@@ -217,7 +217,7 @@ void get_rand(char *mm_string, char switches)
 		}
 		close(randy);
 
-	}while(validate_num(mm_string, switches) == 0);
+	}while(0 == validate_num(mm_string, switches));
 }
 
 int validate_num(char *mm_string, char switches)
@@ -230,7 +230,7 @@ int validate_num(char *mm_string, char switches)
 			for(int j = i + 1; j <= 4; j++)
 			{
 				if(mm_string[i] == mm_string[j] || 
-						mm_string[i] < 48 || mm_string[i] > 57)
+						48 > mm_string[i] || 57 < mm_string[i])
 				{	
 					return_code = 0;
 				}
