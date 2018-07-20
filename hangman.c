@@ -2,83 +2,62 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_LENGTH 		35 /* Length of Supercalifragilisticexpialidocious + 1*/
 #define LOSS_COUNT 		6
 #define GUESS_LENGTH 	2
 
+/* Used to print usage in Error cases */
 void
 printUsage(void);
 
+/* Used to validate user input or file data and changes case if not lower case */
 int
-validateGuess(char *guess);
+validateInput(char *guess);
 
+/* Takes the valid input and compares it against the secret word. 
+ * Changes the display word if correct letter was guessed */
 int
 checkGuess(char *guess, char *secretWord, char *displayWord);
+
+/* main driver for game play */
+void
+playGame(char *secretWord, char *displayWord);
+
+/* Opens a wordlist, and selects a random valid word from it to play hangman */
+void
+readFile(char *secretWord, char *filename);
 
 int 
 main(int argc, char *argv[])
 {
 	char secretWord[MAX_LENGTH];
-	int notWinning = 1;
-	int guessCount = 0;
-	setbuf(stdout, NULL);
+	char filename[] = ".words";
 
 	if(argc == 1)
 	{
-		/* Open .hangman file and .words files */
+		readFile(secretWord, filename);
 	}
 	else if(argc == 2)
 	{
-		/* Open file on Command Line */
+		strcpy(filename, argv[1]);
+		readFile(secretWord, filename);
 	}
 	else
 	{
 		printf("Wrong amount of arguments\n");
 		printUsage();
 	}
+	printf("%s\n", secretWord);
 
-	strcpy(secretWord, "hangman");	
-
-	char *displayWord = malloc(sizeof(char) * sizeof(secretWord));
+	char *displayWord = malloc(sizeof(char) * strlen(secretWord) + 1);
+	memset(displayWord, 0, strlen(secretWord) + 1);
 	for(unsigned int i = 0; i < strlen(secretWord); i++)
 	{
 		displayWord[i] = '_';
 	}
-
-	while(notWinning && guessCount < LOSS_COUNT)
-	{
-		char guess[GUESS_LENGTH];
-		char buff[MAX_LENGTH];
-		int garbage;
-
-		printf("%s\n", displayWord);
-		printf("Please enter a letter : ");
-		fgets(buff, GUESS_LENGTH, stdin);
-		while((garbage = getchar()) != '\n');
-		strcpy(guess, buff);
-		guess[1] = 0;
-		if(validateGuess(guess))
-		{
-			if(checkGuess(guess, secretWord, displayWord))
-			{
-				if(strcmp(secretWord, displayWord) == 0)
-				{
-					notWinning = 0;
-				}
-			}
-			else
-			{
-				guessCount++;
-			}
-		}
-		else
-		{
-			printf("Invalid\n");
-		}
-	}
-	printf("You win with %d chances left.\n", LOSS_COUNT - guessCount);
-
+	playGame(secretWord, displayWord);
 	free(displayWord);
 	return 0;
 }
@@ -90,7 +69,7 @@ printUsage(void)
 }
 
 int
-validateGuess(char *guess)
+validateInput(char *guess)
 {
 	for(unsigned int i = 0; i < strlen(guess); i++)
 	{
@@ -129,4 +108,91 @@ checkGuess(char *guess, char *secretWord, char *displayWord)
 	{
 		return 0;
 	}
+}
+
+void 
+playGame(char *secretWord, char *displayWord)
+{
+	int notWinning = 1;
+	int guessCount = 0;
+	while(notWinning && guessCount < LOSS_COUNT)
+	{
+		char guess[GUESS_LENGTH];
+		char buff[MAX_LENGTH];
+		int garbage;
+
+		printf("%s\n", displayWord);
+		printf("Please enter a letter : ");
+		fgets(buff, GUESS_LENGTH, stdin);
+		while((garbage = getchar()) != '\n');
+		strcpy(guess, buff);
+		guess[1] = 0;
+		if(validateInput(guess))
+		{
+			if(checkGuess(guess, secretWord, displayWord))
+			{
+				if(strcmp(secretWord, displayWord) == 0)
+				{
+					notWinning = 0;
+				}
+			}
+			else
+			{
+				guessCount++;
+			}
+		}
+		else
+		{
+			printf("Invalid\n");
+		}
+	}
+	if(notWinning == 0)
+	{
+		printf("You win with %d chances left.\n", LOSS_COUNT - guessCount);
+	}
+	else
+	{
+		printf("You lose.\n");
+	}
+}
+
+void
+readFile(char *secretWord, char *filename)
+{
+	int random = 0;
+	int readWordSize = 0;
+	FILE *wordList;
+	char *readWord;
+	long unsigned int readWordLength = 0;
+	int i = 0;
+
+	wordList = fopen(filename, "r");
+	if(wordList == NULL)
+	{
+		printf("Please supply a wordlist.\n");
+		printUsage();
+		exit(1);
+	}
+	while((getline(&readWord, &readWordLength, wordList) != -1))
+	{
+		i++;
+	}
+	do
+	{
+		srand(time(0));
+		random = rand() % i;
+		fseek(wordList, 0, SEEK_SET);
+		i = 0;
+		while(i <= random)
+		{
+			readWordSize = getline(&readWord, &readWordLength, wordList);
+			if(i == random)
+			{
+				readWord[readWordSize - 1] = 0;
+				strcpy(secretWord, readWord);
+			}
+			i++;
+		}
+	}while(validateInput(secretWord) == 0);
+	fclose(wordList);
 }
