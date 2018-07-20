@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define MAX_LENGTH 		35 /* Length of Supercalifragilisticexpialidocious + 1*/
-#define LOSS_COUNT 		5
+#define LOSS_COUNT 		6
 #define GUESS_LENGTH 	2
 
 void
@@ -12,8 +13,8 @@ printUsage(void);
 int
 validateGuess(char *guess);
 
-void
-checkGuess(char *guess, char *secretWord);
+int
+checkGuess(char *guess, char *secretWord, char *displayWord);
 
 int 
 main(int argc, char *argv[])
@@ -37,13 +38,21 @@ main(int argc, char *argv[])
 		printUsage();
 	}
 
-	while(notWinning || guessCount < LOSS_COUNT)
+	strcpy(secretWord, "hangman");	
+
+	char *displayWord = malloc(sizeof(char) * sizeof(secretWord));
+	for(unsigned int i = 0; i < strlen(secretWord); i++)
+	{
+		displayWord[i] = '_';
+	}
+
+	while(notWinning && guessCount < LOSS_COUNT)
 	{
 		char guess[GUESS_LENGTH];
 		char buff[MAX_LENGTH];
 		int garbage;
-	
 
+		printf("%s\n", displayWord);
 		printf("Please enter a letter : ");
 		fgets(buff, GUESS_LENGTH, stdin);
 		while((garbage = getchar()) != '\n');
@@ -51,15 +60,26 @@ main(int argc, char *argv[])
 		guess[1] = 0;
 		if(validateGuess(guess))
 		{
-			printf("Valid\n");
+			if(checkGuess(guess, secretWord, displayWord))
+			{
+				if(strcmp(secretWord, displayWord) == 0)
+				{
+					notWinning = 0;
+				}
+			}
+			else
+			{
+				guessCount++;
+			}
 		}
 		else
 		{
 			printf("Invalid\n");
 		}
-		printf("%s\n", guess);
 	}
+	printf("You win with %d chances left.\n", LOSS_COUNT - guessCount);
 
+	free(displayWord);
 	return 0;
 }
 
@@ -89,8 +109,24 @@ validateGuess(char *guess)
 	return 1;
 }
 
-void
-checkGuess(char *guess, char *secretWord)
+int
+checkGuess(char *guess, char *secretWord, char *displayWord)
 {
-	/* Check Here */
+	int found = 0;
+	for(unsigned int i = 0; i < strlen(secretWord); i++)
+	{
+		if(guess[0] == secretWord[i])
+		{
+			displayWord[i] = guess[0];
+			found ++;
+		}
+	}
+	if(found)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
